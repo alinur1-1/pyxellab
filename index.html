@@ -1,38 +1,62 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>PIXEL PHYSICS LAB // Лаборатория визуальной физики</title>
+  <title>Physics Lab — Интерактивная лаборатория визуальной физики</title>
 
-  <!-- Шрифты: Press Start 2P (пиксельный), JetBrains Mono и Inter (академический) -->
+  <!-- Шрифты: Inter (основной интерфейс) и JetBrains Mono (параметры и телеметрия) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <!-- KaTeX для мгновенного рендеринга математических формул -->
+  <!-- KaTeX для рендеринга математических формул -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
   <style>
-    :root {
-      --bg-base: #0D1117;
-      --bg-card: #161B22;
-      --bg-elevated: #1F2631;
-      --cyan: #00F0FF;
-      --cyan-dim: rgba(0, 240, 255, 0.14);
-      --led-blue: #2B6CB0;
-      --led-glow: #4299E1;
-      --text-main: #E6EDF3;
-      --text-muted: #8B949E;
-      --border: #30363D;
-      --accent-green: #3FB950;
-      --accent-amber: #D29922;
-      --accent-red: #F85149;
-      --font-pixel: 'Press Start 2P', monospace;
-      --font-mono: 'JetBrains Mono', monospace;
-      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* =========================================================================
+       ЦВЕТОВЫЕ ПЕРЕМЕННЫЕ: СВЕТЛАЯ И ТЕМНАЯ ТЕМЫ
+       ========================================================================= */
+    :root[data-theme="light"] {
+      --bg-page: #F8FAFC;
+      --bg-surface: #FFFFFF;
+      --bg-subtle: #F1F5F9;
+      --bg-canvas: #F8FAFC;
+      --text-primary: #0F172A;
+      --text-secondary: #475569;
+      --text-muted: #64748B;
+      --border-color: #E2E8F0;
+      --border-hover: #CBD5E1;
+      --accent: #2563EB;
+      --accent-hover: #1D4ED8;
+      --accent-soft: rgba(37, 99, 235, 0.08);
+      --success: #10B981;
+      --danger: #EF4444;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px -5px rgba(15, 23, 42, 0.06);
+      --header-bg: rgba(255, 255, 255, 0.85);
+    }
+
+    :root[data-theme="dark"] {
+      --bg-page: #0B0F17;
+      --bg-surface: #131B2E;
+      --bg-subtle: #1E293B;
+      --bg-canvas: #090D16;
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --border-color: #1E293B;
+      --border-hover: #334155;
+      --accent: #38BDF8;
+      --accent-hover: #7DD3FC;
+      --accent-soft: rgba(56, 189, 248, 0.12);
+      --success: #34D399;
+      --danger: #F87171;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+      --shadow-md: 0 12px 30px -5px rgba(0, 0, 0, 0.35);
+      --header-bg: rgba(11, 15, 23, 0.82);
     }
 
     * {
@@ -44,268 +68,261 @@
 
     html {
       scroll-behavior: smooth;
-      background-color: var(--bg-base);
-      color: var(--text-main);
-      font-family: var(--font-sans);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-primary);
       line-height: 1.6;
-      font-size: 16px;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
 
     body {
-      position: relative;
-      overflow-x: hidden;
       min-height: 100vh;
-      background-image: 
-        radial-gradient(rgba(0, 240, 255, 0.06) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(13, 17, 23, 0.96), rgba(13, 17, 23, 0.99));
-      background-size: 24px 24px, 100% 100%;
+      overflow-x: hidden;
     }
 
-    /* Эффект ЭЛТ-монитора (легкие сканлайны) */
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.1),
-        rgba(0, 0, 0, 0.1) 1px,
-        transparent 1px,
-        transparent 3px
-      );
-      pointer-events: none;
-      z-index: 9999;
-    }
-
-    /* Шапка и навигация */
+    /* =========================================================================
+       ШАПКА И НАВИГАЦИЯ
+       ========================================================================= */
     header {
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(13, 17, 23, 0.92);
+      background: var(--header-bg);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.85rem 1.5rem;
+      transition: background-color 0.25s ease, border-color 0.25s ease;
     }
 
     .nav-container {
-      max-width: 1200px;
+      max-width: 1180px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 0.75rem;
+      gap: 1rem;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.65rem;
       text-decoration: none;
-      color: var(--cyan);
-      font-family: var(--font-pixel);
-      font-size: clamp(0.65rem, 2vw, 0.85rem);
-      letter-spacing: 0.5px;
-      text-shadow: 0 0 10px rgba(0, 240, 255, 0.45);
-      white-space: nowrap;
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
     }
 
-    .brand-led {
+    .brand-dot {
       width: 10px;
       height: 10px;
-      flex-shrink: 0;
-      background: var(--cyan);
-      box-shadow: 0 0 10px var(--cyan), 0 0 20px var(--led-blue);
-      display: inline-block;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
     }
 
     .nav-right {
       display: flex;
       align-items: center;
-      gap: 1.25rem;
+      gap: 1.5rem;
     }
 
     .nav-links {
       display: flex;
-      gap: 1.25rem;
-      align-items: center;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
+      gap: 1.5rem;
+      font-size: 0.9rem;
+      font-weight: 500;
     }
 
     .nav-links a {
-      color: var(--text-main);
+      color: var(--text-secondary);
       text-decoration: none;
       transition: color 0.2s;
-      padding: 0.3rem 0;
-      white-space: nowrap;
     }
 
     .nav-links a:hover {
-      color: var(--cyan);
+      color: var(--text-primary);
     }
 
-    /* Языковой переключатель */
+    .controls-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    /* Переключатель языков */
     .lang-switch {
       display: flex;
-      border: 1px solid var(--cyan);
-      background: var(--bg-card);
-      flex-shrink: 0;
+      background: var(--bg-subtle);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
     }
 
     .lang-btn {
       background: transparent;
       border: none;
-      color: var(--text-muted);
-      font-family: var(--font-pixel);
-      font-size: 0.62rem;
-      padding: 0.5rem 0.65rem;
+      color: var(--text-secondary);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
       cursor: pointer;
       transition: all 0.2s;
-      min-height: 34px;
     }
 
     .lang-btn.active {
-      background: var(--cyan);
-      color: var(--bg-base);
-      font-weight: bold;
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
     }
 
-    /* Основной контейнер */
+    /* Кнопка смены темы (Светлая / Темная) */
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      height: 34px;
+      padding: 0 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--border-hover);
+    }
+
+    /* =========================================================================
+       ОСНОВНОЙ КОНТЕНТ И ГЛАВНЫЙ ЭКРАН
+       ========================================================================= */
     main {
-      max-width: 1200px;
+      max-width: 1180px;
       margin: 0 auto;
-      padding: clamp(1rem, 3vw, 2rem);
+      padding: clamp(1.25rem, 3vw, 2.5rem);
     }
 
     section {
-      margin-bottom: clamp(2.75rem, 6vw, 4.5rem);
-      scroll-margin-top: 4.5rem;
+      margin-bottom: clamp(3rem, 6vw, 5rem);
+      scroll-margin-top: 5rem;
     }
 
-    /* Главный экран (The Lab Terminal) */
-    .terminal-hero {
-      border: 1px solid var(--border);
-      background: linear-gradient(145deg, #121820 0%, #0D1117 100%);
-      box-shadow: 0 0 35px rgba(43, 108, 176, 0.2), inset 0 0 0 1px rgba(0, 240, 255, 0.1);
-      padding: clamp(1.15rem, 3.5vw, 2.2rem);
-      position: relative;
+    .hero-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: clamp(1.5rem, 4vw, 3rem);
+      box-shadow: var(--shadow-md);
+      transition: background-color 0.25s ease, border-color 0.25s ease;
     }
 
-    .terminal-bar {
-      display: flex;
-      justify-content: space-between;
+    .hero-eyebrow {
+      display: inline-flex;
       align-items: center;
-      border-bottom: 1px dashed var(--border);
-      padding-bottom: 0.75rem;
-      margin-bottom: 1.4rem;
-      font-family: var(--font-mono);
-      font-size: clamp(0.65rem, 1.8vw, 0.78rem);
-      color: var(--text-muted);
       gap: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      margin-bottom: 1.25rem;
     }
-
-    .terminal-status {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .terminal-dots {
-      display: flex;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-
-    .terminal-dots span {
-      width: 10px;
-      height: 10px;
-      display: inline-block;
-      border: 1px solid var(--border);
-    }
-
-    .dot-cyan { background: var(--cyan); }
-    .dot-blue { background: var(--led-blue); }
 
     .hero-title {
-      font-family: var(--font-pixel);
-      font-size: clamp(0.95rem, 3.2vw, 1.85rem);
-      color: var(--cyan);
-      line-height: 1.55;
-      margin-bottom: 0.9rem;
-      text-shadow: 0 0 14px rgba(0, 240, 255, 0.35);
-      word-break: break-word;
+      font-size: clamp(1.65rem, 4vw, 2.6rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
     }
 
     .hero-subtitle {
-      color: var(--text-muted);
-      max-width: 820px;
-      font-size: clamp(0.88rem, 2vw, 1rem);
+      font-size: clamp(0.95rem, 2vw, 1.1rem);
+      color: var(--text-secondary);
+      max-width: 780px;
+      margin-bottom: 1.5rem;
     }
 
-    .manifesto-box {
-      background: rgba(22, 27, 34, 0.85);
-      border-left: 3px solid var(--cyan);
-      padding: clamp(0.85rem, 2.5vw, 1.2rem);
-      margin: 1.25rem 0;
-      font-family: var(--font-mono);
+    .manifesto-pill {
+      background: var(--bg-subtle);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 12px 12px 0;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.75rem;
     }
 
     .manifesto-en {
-      font-size: clamp(0.8rem, 2vw, 0.95rem);
-      color: var(--text-main);
-      margin-bottom: 0.4rem;
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
     }
 
     .manifesto-jp {
-      font-size: clamp(0.74rem, 1.8vw, 0.84rem);
-      color: var(--cyan);
-      opacity: 0.9;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
     }
 
-    /* Фильтры по разделам физики (удобный скролл на телефонах) */
-    .filter-bar {
+    /* Фильтры разделов */
+    .filter-row {
       display: flex;
+      align-items: center;
       flex-wrap: wrap;
       gap: 0.6rem;
-      margin-top: 1.4rem;
-      align-items: center;
     }
 
     .filter-label {
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
+      font-size: 0.82rem;
+      font-weight: 600;
       color: var(--text-muted);
-      margin-right: 0.25rem;
+      margin-right: 0.4rem;
     }
 
-    .filter-buttons-scroll {
+    .filter-scroll {
       display: flex;
-      gap: 0.55rem;
+      gap: 0.5rem;
       flex-wrap: wrap;
-      width: 100%;
     }
 
     .filter-btn {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      padding: 0.55rem 0.95rem;
-      min-height: 40px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.84rem;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
       cursor: pointer;
       transition: all 0.2s;
-      white-space: nowrap;
     }
 
-    .filter-btn:hover,
+    .filter-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--border-hover);
+    }
+
     .filter-btn.active {
-      border-color: var(--cyan);
-      color: var(--cyan);
-      box-shadow: 0 0 12px var(--cyan-dim);
-      background: rgba(0, 240, 255, 0.08);
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #FFFFFF;
+    }
+
+    :root[data-theme="dark"] .filter-btn.active {
+      color: #0B0F17;
+      font-weight: 600;
     }
 
     /* Заголовки секций */
@@ -313,57 +330,49 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0.75rem;
       margin-bottom: 1.5rem;
       flex-wrap: wrap;
-      gap: 0.6rem;
+      gap: 0.5rem;
     }
 
     .section-title {
-      font-family: var(--font-pixel);
-      font-size: clamp(0.82rem, 2.4vw, 1.05rem);
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 0.55rem;
-      line-height: 1.45;
-    }
-
-    .section-title::before {
-      content: ">>";
-      color: var(--cyan);
-      flex-shrink: 0;
+      font-size: clamp(1.25rem, 2.5vw, 1.55rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
     }
 
     .section-subtitle {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
       color: var(--text-muted);
     }
 
-    /* Каталог феноменов (Phenomena Grid) */
+    /* =========================================================================
+       СЕТКА МОДУЛЕЙ (КАРТОЧКИ ЯВЛЕНИЙ)
+       ========================================================================= */
     .phenomena-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-      gap: 1.4rem;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr));
+      gap: 1.5rem;
     }
 
     .module-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
       display: flex;
       flex-direction: column;
-      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-      position: relative;
       overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
     }
 
     @media (hover: hover) {
       .module-card:hover {
         transform: translateY(-4px);
-        border-color: var(--cyan);
-        box-shadow: 0 8px 25px rgba(0, 240, 255, 0.12);
+        box-shadow: var(--shadow-md);
+        border-color: var(--border-hover);
       }
     }
 
@@ -371,261 +380,257 @@
       position: relative;
       width: 100%;
       aspect-ratio: 16 / 9;
-      background: #080B10;
-      border-bottom: 1px solid var(--border);
+      background: var(--bg-canvas);
+      border-bottom: 1px solid var(--border-color);
       overflow: hidden;
     }
 
-    .pixel-canvas {
+    .sim-canvas {
       width: 100%;
       height: 100%;
-      image-rendering: pixelated;
       display: block;
     }
 
     .card-badges {
       position: absolute;
-      top: 8px;
-      left: 8px;
-      right: 8px;
+      top: 12px;
+      left: 12px;
+      right: 12px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      gap: 0.4rem;
       pointer-events: none;
     }
 
     .tag-badge {
-      background: rgba(13, 17, 23, 0.9);
-      border: 1px solid var(--cyan);
-      color: var(--cyan);
-      font-family: var(--font-mono);
-      font-size: 0.68rem;
-      padding: 0.2rem 0.5rem;
+      background: var(--header-bg);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
     }
 
     .lvl-badge {
-      background: rgba(43, 108, 176, 0.9);
-      border: 1px solid var(--led-glow);
-      color: #fff;
-      font-family: var(--font-pixel);
-      font-size: 0.52rem;
-      padding: 0.28rem 0.45rem;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
     }
 
     .card-body {
-      padding: clamp(1rem, 2.5vw, 1.35rem);
+      padding: 1.5rem;
       display: flex;
       flex-direction: column;
       flex: 1;
     }
 
     .card-title {
-      font-family: var(--font-pixel);
-      font-size: clamp(0.75rem, 2vw, 0.85rem);
-      line-height: 1.5;
-      color: var(--text-main);
-      margin-bottom: 0.7rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1.35;
+      margin-bottom: 0.6rem;
+      color: var(--text-primary);
     }
 
     .card-desc {
-      font-size: 0.88rem;
-      color: var(--text-muted);
-      margin-bottom: 1.1rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.25rem;
       flex: 1;
     }
 
     .card-formula-preview {
-      background: var(--bg-base);
-      border: 1px solid var(--border);
-      padding: 0.5rem;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0.6rem;
       text-align: center;
-      margin-bottom: 1rem;
-      font-size: 0.85rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.88rem;
       overflow-x: auto;
-      max-width: 100%;
     }
 
     .open-module-btn {
       width: 100%;
-      background: rgba(0, 240, 255, 0.04);
-      border: 1px solid var(--cyan);
-      color: var(--cyan);
-      font-family: var(--font-pixel);
-      font-size: 0.65rem;
-      padding: 0.9rem 0.75rem;
-      min-height: 44px;
+      background: var(--accent-soft);
+      border: 1px solid transparent;
+      color: var(--accent);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
       cursor: pointer;
       transition: all 0.2s;
-      text-transform: uppercase;
-      line-height: 1.4;
     }
 
-    .open-module-btn:hover,
-    .open-module-btn:active {
-      background: var(--cyan);
-      color: var(--bg-base);
-      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    .open-module-btn:hover {
+      background: var(--accent);
+      color: #FFFFFF;
     }
 
-    /* Лаборатория симуляций (Interactive Sandbox) */
+    :root[data-theme="dark"] .open-module-btn:hover {
+      color: #0B0F17;
+    }
+
+    /* =========================================================================
+       ИНТЕРАКТИВНАЯ ПЕСОЧНИЦА (SANDBOX)
+       ========================================================================= */
     .sandbox-container {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      padding: clamp(1rem, 3vw, 1.75rem);
-      box-shadow: 0 0 25px rgba(43, 108, 176, 0.15);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: clamp(1.25rem, 3vw, 2rem);
+      box-shadow: var(--shadow-md);
     }
 
     .sandbox-tabs {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 0.65rem;
-      margin-bottom: 1.4rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 1rem;
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      background: var(--bg-subtle);
+      padding: 5px;
+      border-radius: 12px;
+      margin-bottom: 1.75rem;
+      border: 1px solid var(--border-color);
     }
 
     .sandbox-tab {
-      background: var(--bg-base);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      font-family: var(--font-pixel);
-      font-size: 0.62rem;
-      padding: 0.75rem 0.85rem;
-      min-height: 44px;
-      line-height: 1.4;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.6rem 1.1rem;
+      border-radius: 8px;
       cursor: pointer;
-      text-align: center;
       transition: all 0.2s;
     }
 
     .sandbox-tab.active {
-      border-color: var(--cyan);
-      color: var(--cyan);
-      background: rgba(0, 240, 255, 0.09);
-      box-shadow: 0 0 12px var(--cyan-dim);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
     }
 
     .sandbox-grid {
       display: grid;
-      grid-template-columns: 1fr 1.3fr;
-      gap: 1.5rem;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 1.75rem;
       align-items: stretch;
     }
 
     .controls-panel {
-      background: var(--bg-base);
-      border: 1px solid var(--border);
-      padding: clamp(1rem, 2.5vw, 1.35rem);
-      font-family: var(--font-mono);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.5rem;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
 
     .control-group {
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.35rem;
     }
 
     .control-group label {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 0.5rem;
-      font-size: 0.82rem;
+      font-size: 0.88rem;
+      font-weight: 500;
       margin-bottom: 0.65rem;
-      color: var(--text-main);
+      color: var(--text-primary);
+      gap: 0.5rem;
     }
 
     .control-val {
-      color: var(--cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
       font-weight: 600;
-      background: var(--bg-card);
-      padding: 0.15rem 0.5rem;
-      border: 1px solid var(--border);
-      white-space: nowrap;
+      color: var(--accent);
+      background: var(--bg-surface);
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
     }
 
-    /* Удобные тач-ползунки для телефонов и ПК */
     input[type="range"] {
       -webkit-appearance: none;
       appearance: none;
       width: 100%;
-      height: 8px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
+      height: 6px;
+      background: var(--border-hover);
+      border-radius: 999px;
       outline: none;
       cursor: pointer;
-      margin: 0.4rem 0;
     }
 
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 24px;
-      height: 24px;
-      background: var(--cyan);
-      border: 2px solid var(--bg-base);
-      box-shadow: 0 0 10px var(--cyan);
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid var(--bg-surface);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
       cursor: pointer;
-    }
-
-    input[type="range"]::-moz-range-thumb {
-      width: 24px;
-      height: 24px;
-      background: var(--cyan);
-      border: 2px solid var(--bg-base);
-      box-shadow: 0 0 10px var(--cyan);
-      cursor: pointer;
-      border-radius: 0;
     }
 
     .telemetry-readout {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.65rem;
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px dashed var(--border);
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border-color);
     }
 
     .stat-box {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      padding: 0.6rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0.75rem;
     }
 
     .stat-label {
-      font-size: 0.68rem;
+      font-size: 0.72rem;
+      font-weight: 600;
       color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
       display: block;
       margin-bottom: 0.2rem;
     }
 
     .stat-num {
-      font-size: clamp(0.88rem, 2vw, 1.05rem);
-      color: var(--cyan);
-      font-weight: bold;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-primary);
     }
 
     .sandbox-stage {
-      background: #070A0F;
-      border: 1px solid var(--border);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
       width: 100%;
       aspect-ratio: 16 / 9;
-      min-height: 220px;
-      position: relative;
+      min-height: 240px;
       overflow: hidden;
     }
 
-    .sandbox-canvas {
-      width: 100%;
-      height: 100%;
-      image-rendering: pixelated;
-      display: block;
-    }
-
-    /* Академический архив и об авторе */
+    /* =========================================================================
+       АКАДЕМИЧЕСКИЙ АРХИВ И АВТОР
+       ========================================================================= */
     .archive-grid {
       display: grid;
       grid-template-columns: 1.35fr 1fr;
@@ -633,86 +638,103 @@
     }
 
     .paper-card, .cv-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      padding: clamp(1.1rem, 3vw, 1.6rem);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: clamp(1.25rem, 3vw, 2rem);
+      box-shadow: var(--shadow-sm);
     }
 
     .paper-badge {
       display: inline-block;
-      background: rgba(43, 108, 176, 0.25);
-      border: 1px solid var(--led-glow);
-      color: var(--cyan);
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      padding: 0.2rem 0.55rem;
-      margin-bottom: 0.8rem;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      margin-bottom: 0.85rem;
     }
 
     .paper-title {
-      font-size: clamp(1rem, 2.2vw, 1.15rem);
+      font-size: 1.2rem;
       font-weight: 700;
       margin-bottom: 0.75rem;
-      color: var(--text-main);
+      color: var(--text-primary);
     }
 
     .abstract-box {
-      background: var(--bg-base);
-      border-left: 3px solid var(--led-blue);
-      padding: 0.9rem;
-      font-size: 0.86rem;
-      color: var(--text-muted);
-      margin-bottom: 1.15rem;
+      background: var(--bg-subtle);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 10px 10px 0;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.2rem;
+    }
+
+    .ref-list {
+      margin-top: 1rem;
+      padding-left: 1.2rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .ref-list li {
+      margin-bottom: 0.4rem;
     }
 
     .btn-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.65rem;
-      margin-top: 1.1rem;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
     }
 
-    .btn-pixel {
+    .btn-primary {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 0.5rem;
-      background: var(--led-blue);
-      border: 1px solid var(--cyan);
-      color: #fff;
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      padding: 0.65rem 1rem;
-      min-height: 42px;
+      background: var(--accent);
+      color: #FFFFFF;
+      font-size: 0.86rem;
+      font-weight: 600;
+      padding: 0.7rem 1.2rem;
+      border-radius: 10px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    :root[data-theme="dark"] .btn-primary {
+      color: #0B0F17;
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-size: 0.86rem;
+      font-weight: 600;
+      padding: 0.7rem 1.2rem;
+      border-radius: 10px;
       text-decoration: none;
       cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
+      transition: border-color 0.2s;
     }
 
-    .btn-pixel:hover {
-      background: var(--cyan);
-      color: var(--bg-base);
-    }
-
-    .ref-list {
-      margin-top: 1rem;
-      padding-left: 1.1rem;
-      font-family: var(--font-mono);
-      font-size: 0.76rem;
-      color: var(--text-muted);
-    }
-
-    .ref-list li {
-      margin-bottom: 0.45rem;
-      word-break: break-word;
-    }
-
-    /* Модальное окно модуля «3 уровня глубины» */
+    /* =========================================================================
+       МОДАЛЬНОЕ ОКНО «3 УРОВНЯ ГЛУБИНЫ»
+       ========================================================================= */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(6, 9, 14, 0.88);
+      background: rgba(15, 23, 42, 0.65);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
       z-index: 1000;
@@ -720,7 +742,6 @@
       justify-content: center;
       align-items: center;
       padding: 1rem;
-      overflow-y: auto;
     }
 
     .modal-overlay.open {
@@ -728,10 +749,11 @@
     }
 
     .modal-window {
-      background: var(--bg-card);
-      border: 1px solid var(--cyan);
-      box-shadow: 0 0 40px rgba(0, 240, 255, 0.25);
-      max-width: 880px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      box-shadow: var(--shadow-md);
+      max-width: 840px;
       width: 100%;
       max-height: 90vh;
       display: flex;
@@ -740,143 +762,136 @@
     }
 
     .modal-header {
-      background: var(--bg-base);
-      border-bottom: 1px solid var(--border);
-      padding: 0.9rem 1.25rem;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1.1rem 1.5rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 0.75rem;
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      gap: 1rem;
     }
 
     .modal-title {
-      font-family: var(--font-pixel);
-      font-size: clamp(0.68rem, 2vw, 0.85rem);
-      color: var(--cyan);
-      line-height: 1.4;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
     }
 
     .close-modal {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      font-family: var(--font-pixel);
-      font-size: 0.68rem;
-      padding: 0.5rem 0.75rem;
-      min-height: 38px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
       cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .close-modal:hover {
-      border-color: var(--accent-red);
-      color: var(--accent-red);
     }
 
     .modal-content {
-      padding: clamp(1rem, 3vw, 1.75rem);
+      padding: 1.5rem;
       overflow-y: auto;
     }
 
     .depth-level {
-      border: 1px solid var(--border);
-      background: var(--bg-base);
-      padding: clamp(0.95rem, 2.5vw, 1.35rem);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.25rem;
       margin-bottom: 1.25rem;
     }
 
     .depth-badge {
       display: inline-block;
-      font-family: var(--font-pixel);
-      font-size: 0.58rem;
-      color: var(--bg-base);
-      background: var(--cyan);
-      padding: 0.3rem 0.55rem;
-      margin-bottom: 0.85rem;
-      line-height: 1.3;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      margin-bottom: 0.75rem;
     }
 
     .table-scroll {
       width: 100%;
       overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      margin-top: 0.85rem;
+      margin-top: 0.75rem;
     }
 
     .glossary-table {
       width: 100%;
-      min-width: 420px;
+      min-width: 400px;
       border-collapse: collapse;
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
+      font-size: 0.85rem;
+      background: var(--bg-surface);
+      border-radius: 8px;
+      overflow: hidden;
     }
 
     .glossary-table th,
     .glossary-table td {
-      border: 1px solid var(--border);
-      padding: 0.5rem 0.65rem;
+      border: 1px solid var(--border-color);
+      padding: 0.6rem 0.85rem;
       text-align: left;
     }
 
     .glossary-table th {
-      background: var(--bg-card);
-      color: var(--cyan);
+      background: var(--bg-subtle);
+      font-weight: 600;
+      color: var(--text-primary);
     }
 
     .quiz-option {
       display: block;
       width: 100%;
       text-align: left;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      font-family: var(--font-sans);
-      font-size: 0.88rem;
-      padding: 0.8rem 0.95rem;
-      margin-top: 0.6rem;
-      min-height: 46px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      padding: 0.8rem 1rem;
+      margin-top: 0.55rem;
+      border-radius: 10px;
       cursor: pointer;
       transition: all 0.2s;
-      line-height: 1.45;
     }
 
     .quiz-option:hover {
-      border-color: var(--cyan);
+      border-color: var(--accent);
     }
 
     .quiz-option.correct {
-      border-color: var(--accent-green);
-      background: rgba(63, 185, 80, 0.16);
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.12);
     }
 
     .quiz-option.wrong {
-      border-color: var(--accent-red);
-      background: rgba(248, 81, 73, 0.16);
+      border-color: var(--danger);
+      background: rgba(239, 68, 68, 0.12);
     }
 
     .quiz-feedback {
       margin-top: 0.85rem;
-      padding: 0.85rem;
-      border-left: 3px solid var(--cyan);
-      background: var(--bg-card);
-      font-size: 0.86rem;
+      padding: 0.85rem 1rem;
+      border-left: 3px solid var(--accent);
+      background: var(--bg-surface);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.88rem;
       display: none;
     }
 
     footer {
-      border-top: 1px solid var(--border);
-      padding: 1.75rem 1rem;
+      border-top: 1px solid var(--border-color);
+      padding: 2rem 1rem;
       text-align: center;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
+      font-size: 0.82rem;
       color: var(--text-muted);
     }
 
     /* =========================================================================
-       АДАПТИВНЫЕ БРЕЙКПОИНТЫ ДЛЯ ПЛАНШЕТОВ И ТЕЛЕФОНОВ
+       АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ И ПЛАНШЕТОВ
        ========================================================================= */
     @media (max-width: 900px) {
       .sandbox-grid,
@@ -884,7 +899,6 @@
         grid-template-columns: 1fr;
       }
 
-      /* На телефонах ставим экран визуализации над ползунками или сразу под ними без скролла */
       .sandbox-stage {
         order: -1;
       }
@@ -892,7 +906,7 @@
 
     @media (max-width: 640px) {
       header {
-        padding: 0.65rem 0.9rem;
+        padding: 0.75rem 1rem;
       }
 
       .nav-container {
@@ -902,181 +916,183 @@
       .nav-right {
         width: 100%;
         justify-content: space-between;
-        border-top: 1px dashed var(--border);
-        padding-top: 0.55rem;
+        padding-top: 0.6rem;
+        border-top: 1px solid var(--border-color);
         gap: 0.5rem;
       }
 
       .nav-links {
-        gap: 0.85rem;
-        font-size: 0.78rem;
-        overflow-x: auto;
+        gap: 0.9rem;
+        font-size: 0.82rem;
       }
 
-      /* Горизонтальный свайп фильтров на смартфоне */
-      .filter-buttons-scroll {
+      .filter-scroll {
         flex-wrap: nowrap;
         overflow-x: auto;
-        padding-bottom: 0.35rem;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      .btn-row .btn-pixel {
         width: 100%;
+        padding-bottom: 0.25rem;
       }
 
-      /* Модальное окно на всю высоту экрана смартфона (Bottom Sheet) */
+      .filter-btn {
+        white-space: nowrap;
+      }
+
+      .sandbox-tabs {
+        width: 100%;
+        display: flex;
+      }
+
+      .sandbox-tab {
+        flex: 1;
+        text-align: center;
+        font-size: 0.78rem;
+        padding: 0.55rem 0.5rem;
+      }
+
       .modal-overlay {
         padding: 0;
         align-items: flex-end;
       }
 
       .modal-window {
-        max-height: 94vh;
-        border-left: none;
-        border-right: none;
-        border-bottom: none;
+        border-radius: 20px 20px 0 0;
+        max-height: 92vh;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Шапка терминала -->
+  <!-- Шапка сайта -->
   <header>
     <div class="nav-container">
       <a href="#" class="brand">
-        <span class="brand-led"></span>
-        PIXEL_PHYSICS_LAB
+        <span class="brand-dot"></span>
+        <span>Visual Physics Lab</span>
       </a>
       <div class="nav-right">
         <nav class="nav-links">
           <a href="#phenomena" data-i18n="nav_modules">Модули</a>
           <a href="#sandbox" data-i18n="nav_sandbox">Симуляции</a>
-          <a href="#archive" data-i18n="nav_archive">Исследование & CV</a>
+          <a href="#archive" data-i18n="nav_archive">Исследование</a>
         </nav>
-        <div class="lang-switch" aria-label="Language Switcher">
-          <button class="lang-btn active" onclick="setLang('ru')">RU</button>
-          <button class="lang-btn" onclick="setLang('en')">EN</button>
-          <button class="lang-btn" onclick="setLang('jp')">JP</button>
+        <div class="controls-bar">
+          <div class="lang-switch" aria-label="Выбор языка">
+            <button class="lang-btn active" onclick="setLang('ru')">RU</button>
+            <button class="lang-btn" onclick="setLang('en')">EN</button>
+            <button class="lang-btn" onclick="setLang('jp')">JP</button>
+          </div>
+          <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Переключить тему">
+            <span id="theme-icon">☀️</span>
+            <span id="theme-label">Light</span>
+          </button>
         </div>
       </div>
     </div>
   </header>
 
   <main>
-    <!-- 1. Главный экран (The Lab Terminal) -->
-    <section class="terminal-hero">
-      <div class="terminal-bar">
-        <div class="terminal-dots">
-          <span class="dot-cyan"></span>
-          <span class="dot-blue"></span>
-          <span></span>
-        </div>
-        <span class="terminal-status">SYS.TERM // SOLID_STATE & QUANTUM_VISUALIZER v2.5</span>
-      </div>
-
+    <!-- 1. Главный экран -->
+    <section class="hero-card">
+      <div class="hero-eyebrow">INTERACTIVE SOLID-STATE & QUANTUM LAB</div>
       <h1 class="hero-title" data-i18n="hero_title">
-        ЛАБОРАТОРИЯ ВИЗУАЛЬНОЙ И КВАНТОВОЙ ФИЗИКИ
+        Лаборатория визуальной и квантовой физики
       </h1>
       <p class="hero-subtitle" data-i18n="hero_desc">
-        Интерактивный исследовательский терминал, соединяющий строгий математический аппарат физики твердого тела и квантовой механики с наглядной 16-битной пиксельной графикой.
+        Образовательная платформа и интерактивный справочник, соединяющий строгий математический аппарат физики твердого тела и квантовой механики с наглядным компьютерным моделированием.
       </p>
 
-      <div class="manifesto-box">
+      <div class="manifesto-pill">
         <div class="manifesto-en">
-          "Visualizing quantum and classical processes through 16-bit pixel graphics and interactive mathematical modeling."
+          "Visualizing quantum and solid-state phenomena through clean interactive mathematical modeling."
         </div>
         <div class="manifesto-jp">
-          「ピクセルグラフィックスとインタラクティブなシミュレーションによる量子・古典プロセスの可視化」
+          「インタラクティブな数理モデリングによる量子・固体物理現象の直感的な可視化」
         </div>
       </div>
 
-      <div class="filter-bar">
-        <span class="filter-label" data-i18n="filter_label">ФИЛЬТР РАЗДЕЛОВ:</span>
-        <div class="filter-buttons-scroll">
-          <button class="filter-btn active" onclick="filterCards('all', this)" data-i18n="filter_all">ALL [3]</button>
-          <button class="filter-btn" onclick="filterCards('Solid State', this)">SOLID STATE</button>
-          <button class="filter-btn" onclick="filterCards('Quantum', this)">QUANTUM</button>
-          <button class="filter-btn" onclick="filterCards('Electromagnetism', this)">ELECTROMAGNETISM</button>
+      <div class="filter-row">
+        <span class="filter-label" data-i18n="filter_label">Разделы:</span>
+        <div class="filter-scroll">
+          <button class="filter-btn active" onclick="filterCards('all', this)" data-i18n="filter_all">Все модули (3)</button>
+          <button class="filter-btn" onclick="filterCards('Solid State', this)">Solid State</button>
+          <button class="filter-btn" onclick="filterCards('Quantum', this)">Quantum</button>
+          <button class="filter-btn" onclick="filterCards('Electromagnetism', this)">Superconductivity</button>
         </div>
       </div>
     </section>
 
-    <!-- 2. Каталог феноменов (Phenomena Grid) -->
+    <!-- 2. Каталог феноменов -->
     <section id="phenomena">
       <div class="section-header">
-        <h2 class="section-title" data-i18n="grid_title">КАТАЛОГ ФЕНОМЕНОВ (3 УРОВНЯ ГЛУБИНЫ)</h2>
-        <span class="section-subtitle">16-BIT PIXEL SIMULATIONS + LaTeX THEORY</span>
+        <h2 class="section-title" data-i18n="grid_title">Каталог физических явлений</h2>
+        <span class="section-subtitle">3 УРОВНЯ ГЛУБИНЫ: КОНЦЕПТ • ТЕОРИЯ • ПРОВЕРКА</span>
       </div>
-
-      <div class="phenomena-grid" id="cards-container">
-        <!-- Карточки рендерятся автоматически -->
-      </div>
+      <div class="phenomena-grid" id="cards-container"></div>
     </section>
 
-    <!-- 3. Лаборатория симуляций (Interactive Sandbox) -->
+    <!-- 3. Интерактивная песочница -->
     <section id="sandbox">
       <div class="section-header">
-        <h2 class="section-title" data-i18n="sandbox_title">ИНТЕРАКТИВНАЯ ПЕСОЧНИЦА (LIVE SANDBOX)</h2>
-        <span class="section-subtitle">REAL-TIME PARAMETER MODELING</span>
+        <h2 class="section-title" data-i18n="sandbox_title">Интерактивная лаборатория симуляций</h2>
+        <span class="section-subtitle">REAL-TIME NUMERICAL SIMULATION</span>
       </div>
 
       <div class="sandbox-container">
         <div class="sandbox-tabs">
-          <button class="sandbox-tab active" onclick="switchSandbox('led', this)" id="tab-led">
-            [01] InGaN BANDGAP & LED SPECTRUM
+          <button class="sandbox-tab active" onclick="switchSandbox('led', this)">
+            Зонная структура InGaN и спектр LED
           </button>
-          <button class="sandbox-tab" onclick="switchSandbox('tunnel', this)" id="tab-tunnel">
-            [02] QUANTUM BARRIER TUNNELING
+          <button class="sandbox-tab" onclick="switchSandbox('tunnel', this)">
+            Квантовое туннелирование через барьер
           </button>
         </div>
 
-        <!-- Режим 1: Калькулятор запрещенной зоны InGaN -->
+        <!-- Симуляция 1: InGaN -->
         <div class="sandbox-grid" id="sandbox-led">
           <div class="controls-panel">
             <div>
               <div class="control-group">
                 <label for="slider-x">
-                  <span data-i18n="ctrl_indium">Доля индия x в сплаве InₓGa₁₋ₓN:</span>
+                  <span data-i18n="ctrl_indium">Доля индия x в сплаве InₓGa₁₋ₓN</span>
                   <span class="control-val" id="val-x">0.20</span>
                 </label>
                 <input type="range" id="slider-x" min="0" max="1" step="0.01" value="0.20" oninput="updateLedSandbox()">
               </div>
-              <div style="font-size: 0.82rem; color: var(--text-muted); overflow-x: auto;">
+              <div style="font-size: 0.85rem; color: var(--text-secondary); overflow-x: auto;">
                 $$\lambda = \frac{hc}{E_g(x)} \approx \frac{1240 \text{ eV}\cdot\text{nm}}{E_g(x)}$$
               </div>
             </div>
             <div class="telemetry-readout">
               <div class="stat-box">
-                <span class="stat-label">BAND GAP (Eg)</span>
+                <span class="stat-label">Запрещенная зона (Eg)</span>
                 <span class="stat-num" id="out-eg">2.67 eV</span>
               </div>
               <div class="stat-box">
-                <span class="stat-label">WAVELENGTH (λ)</span>
+                <span class="stat-label">Длина волны (λ)</span>
                 <span class="stat-num" id="out-lambda">464 nm</span>
               </div>
             </div>
           </div>
           <div class="sandbox-stage">
-            <canvas id="canvas-sandbox-led" class="sandbox-canvas" width="480" height="270"></canvas>
+            <canvas id="canvas-sandbox-led" class="sim-canvas" width="560" height="315"></canvas>
           </div>
         </div>
 
-        <!-- Режим 2: Квантовое туннелирование -->
+        <!-- Симуляция 2: Туннелирование -->
         <div class="sandbox-grid" id="sandbox-tunnel" style="display: none;">
           <div class="controls-panel">
             <div>
               <div class="control-group">
                 <label for="slider-width">
-                  <span data-i18n="ctrl_width">Ширина барьера a (нм):</span>
+                  <span data-i18n="ctrl_width">Ширина барьера a (нм)</span>
                   <span class="control-val" id="val-width">1.2 nm</span>
                 </label>
                 <input type="range" id="slider-width" min="0.4" max="2.5" step="0.1" value="1.2" oninput="updateTunnelSandbox()">
               </div>
               <div class="control-group">
                 <label for="slider-v0">
-                  <span data-i18n="ctrl_height">Превышение барьера (V₀ - E):</span>
+                  <span data-i18n="ctrl_height">Высота барьера (V₀ - E)</span>
                   <span class="control-val" id="val-v0">1.5 eV</span>
                 </label>
                 <input type="range" id="slider-v0" min="0.3" max="3.5" step="0.1" value="1.5" oninput="updateTunnelSandbox()">
@@ -1084,17 +1100,17 @@
             </div>
             <div class="telemetry-readout">
               <div class="stat-box">
-                <span class="stat-label">DECAY CONST (κ)</span>
+                <span class="stat-label">Коэфф. затухания (κ)</span>
                 <span class="stat-num" id="out-kappa">6.27 nm⁻¹</span>
               </div>
               <div class="stat-box">
-                <span class="stat-label">TRANSMISSION (T)</span>
+                <span class="stat-label">Прозрачность (T)</span>
                 <span class="stat-num" id="out-trans">2.41 %</span>
               </div>
             </div>
           </div>
           <div class="sandbox-stage">
-            <canvas id="canvas-sandbox-tunnel" class="sandbox-canvas" width="480" height="270"></canvas>
+            <canvas id="canvas-sandbox-tunnel" class="sim-canvas" width="560" height="315"></canvas>
           </div>
         </div>
       </div>
@@ -1103,48 +1119,48 @@
     <!-- 4. Академический архив и об авторе -->
     <section id="archive">
       <div class="section-header">
-        <h2 class="section-title" data-i18n="archive_title">АКАДЕМИЧЕСКИЙ АРХИВ & ПОРТФОЛИО АВТОРА</h2>
-        <span class="section-subtitle">RESEARCH PAPER // REFERENCES // ACADEMIC CV</span>
+        <h2 class="section-title" data-i18n="archive_title">Академический архив и об авторе</h2>
+        <span class="section-subtitle">RESEARCH PAPER & ACADEMIC PORTFOLIO</span>
       </div>
 
       <div class="archive-grid">
         <div class="paper-card">
-          <span class="paper-badge">FEATURED RESEARCH PAPER [20 PAGES]</span>
+          <span class="paper-badge">RESEARCH PAPER • 20 PAGES</span>
           <h3 class="paper-title" data-i18n="paper_title">
             Физика гетероструктур InGaN/GaN и квантовый выход синих светодиодов
           </h3>
           <div class="abstract-box" data-i18n="paper_abstract">
-            Аннотация: В работе проводится сравнительный анализ зонной структуры непрямозонного кремния (Si) и прямозонного нитрида галлия (GaN). Математически моделируется локализация носителей заряда в квантовых ямах InGaN, объясняющая высокую излучательную рекомбинацию даже при высокой плотности дислокаций.
+            Аннотация: В работе проводится сравнительный анализ зонной структуры непрямозонного кремния (Si) и прямозонного нитрида галлия (GaN). Математически моделируется локализация носителей заряда в квантовых ямах InGaN, объясняющая высокую эффективность излучательной рекомбинации.
           </div>
           <ul class="ref-list">
-            <li>[1] Nakamura, S., Pearton, S., & Fasol, G. (2000). The Blue Laser Diode: The Complete Story. Springer.</li>
-            <li>[2] Kittel, C. (2018). Introduction to Solid State Physics (9th ed.). Wiley.</li>
-            <li>[3] Griffiths, D. J. (2018). Introduction to Quantum Mechanics (3rd ed.). Cambridge University Press.</li>
+            <li>Nakamura, S., Pearton, S., & Fasol, G. (2000). The Blue Laser Diode. Springer.</li>
+            <li>Kittel, C. (2018). Introduction to Solid State Physics (9th ed.). Wiley.</li>
+            <li>Griffiths, D. J. (2018). Introduction to Quantum Mechanics (3rd ed.). Cambridge University Press.</li>
           </ul>
           <div class="btn-row">
-            <a href="#archive" class="btn-pixel" onclick="alert('Загрузка полного PDF-файла исследования (20 стр.)')">
-              [PDF] DOWNLOAD FULL RESEARCH
+            <a href="#archive" class="btn-primary" onclick="alert('Скачивание полной PDF-работы (20 стр.)')">
+              Скачать исследование (PDF)
             </a>
-            <a href="#phenomena" class="btn-pixel" style="background: transparent;">
-              [▶] WATCH 60s VIDEO LECTURES
+            <a href="#phenomena" class="btn-secondary">
+              Смотреть видеоразборы
             </a>
           </div>
         </div>
 
         <div class="cv-card">
-          <span class="paper-badge">CREATOR PROFILE // ADMISSIONS DOSSIER</span>
-          <h3 class="paper-title" data-i18n="cv_title">Исследователь и разработчик симуляций</h3>
-          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n="cv_bio">
-            Специализация: Физика полупроводников, квантовая механика, численное моделирование и научная визуализация. Проект создан для демонстрации глубокого понимания математического аппарата за физическими процессами.
+          <span class="paper-badge">RESEARCHER PROFILE</span>
+          <h3 class="paper-title" data-i18n="cv_title">Автор проекта и разработчик</h3>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.2rem;" data-i18n="cv_bio">
+            Специализация: Физика полупроводников, квантовая механика, численное моделирование и создание интерактивных образовательных продуктов.
           </p>
-          <div style="font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.8;">
-            <div><strong style="color: var(--cyan);">CORE FOCUS:</strong> Solid State Physics, III-Nitrides, Quantum Transport</div>
-            <div><strong style="color: var(--cyan);">TECH STACK:</strong> Python, NumPy, LaTeX/KaTeX, HTML5 Canvas, Git</div>
-            <div><strong style="color: var(--cyan);">LANGUAGES:</strong> RU (Native) / EN (Academic) / JP (Technical)</div>
+          <div style="font-size: 0.85rem; line-height: 1.9; color: var(--text-secondary);">
+            <div><strong style="color: var(--text-primary);">Направления:</strong> Solid State Physics, III-Nitrides, Quantum Transport</div>
+            <div><strong style="color: var(--text-primary);">Инструменты:</strong> Python, LaTeX/KaTeX, HTML5 Canvas, Git</div>
+            <div><strong style="color: var(--text-primary);">Языки:</strong> Русский, English, 日本語</div>
           </div>
-          <div class="btn-row" style="margin-top: 1.4rem;">
-            <a href="#archive" class="btn-pixel" onclick="alert('Открытие Academic CV (PDF)')">
-              [CV] ACADEMIC CURRICULUM VITAE
+          <div class="btn-row">
+            <a href="#archive" class="btn-secondary" onclick="alert('Открытие академического CV')">
+              Открыть Academic CV
             </a>
           </div>
         </div>
@@ -1156,27 +1172,25 @@
   <div class="modal-overlay" id="module-modal" onclick="if(event.target === this) closeModal()">
     <div class="modal-window">
       <div class="modal-header">
-        <span class="modal-title" id="m-title">MODULE_TERMINAL</span>
-        <button class="close-modal" onclick="closeModal()">[ESC / X]</button>
+        <span class="modal-title" id="m-title">Модуль</span>
+        <button class="close-modal" onclick="closeModal()">Закрыть ✕</button>
       </div>
       <div class="modal-content">
-        <!-- Уровень 1: Визуальный хук -->
         <div class="depth-level">
-          <span class="depth-badge">LEVEL 01 // 60-SECOND CONCEPT</span>
-          <p id="m-hook" style="font-size: 0.92rem;"></p>
+          <span class="depth-badge">УРОВЕНЬ 1 • 60-СЕКУНДНЫЙ КОНЦЕПТ</span>
+          <p id="m-hook" style="font-size: 0.94rem; color: var(--text-primary);"></p>
         </div>
 
-        <!-- Уровень 2: Строгая физика + Трехъязычный глоссарий -->
         <div class="depth-level">
-          <span class="depth-badge">LEVEL 02 // THE MATH & THEORY (LaTeX)</span>
-          <div id="m-math" style="margin-bottom: 0.8rem; overflow-x: auto; padding: 0.25rem 0;"></div>
+          <span class="depth-badge">УРОВЕНЬ 2 • СТРОГАЯ ФИЗИКА И ТЕРМИНОЛОГИЯ</span>
+          <div id="m-math" style="margin-bottom: 0.8rem; overflow-x: auto;"></div>
           <div class="table-scroll">
             <table class="glossary-table">
               <thead>
                 <tr>
-                  <th>RU (Русский)</th>
-                  <th>EN (English)</th>
-                  <th>JP (日本語)</th>
+                  <th>Русский</th>
+                  <th>English</th>
+                  <th>日本語</th>
                 </tr>
               </thead>
               <tbody id="m-glossary"></tbody>
@@ -1184,10 +1198,9 @@
           </div>
         </div>
 
-        <!-- Уровень 3: Мини-проверка -->
         <div class="depth-level" style="margin-bottom: 0;">
-          <span class="depth-badge">LEVEL 03 // QUICK CHECK</span>
-          <p id="m-question" style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.92rem;"></p>
+          <span class="depth-badge">УРОВЕНЬ 3 • БЫСТРАЯ САМОПРОВЕРКА</span>
+          <p id="m-question" style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.94rem;"></p>
           <div id="m-options"></div>
           <div id="m-feedback" class="quiz-feedback"></div>
         </div>
@@ -1196,12 +1209,37 @@
   </div>
 
   <footer>
-    PIXEL PHYSICS LAB // RESPONSIVE DESKTOP & MOBILE TERMINAL // BUILT WITH HTML5, CSS3, JS & KaTeX
+    Visual Physics Lab • Минималистичная интерактивная платформа для изучения современной физики
   </footer>
 
   <script>
     // =========================================================================
-    // 1. БАЗА ДАННЫХ ЛОКАЛИЗАЦИИ И 3 ФЛАГМАНСКИХ МОДУЛЕЙ
+    // 1. УПРАВЛЕНИЕ ТЕМОЙ (DARK / LIGHT)
+    // =========================================================================
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('phys_theme', theme);
+      const icon = document.getElementById('theme-icon');
+      const label = document.getElementById('theme-label');
+      if (theme === 'dark') {
+        icon.textContent = '☀️';
+        label.textContent = 'Light';
+      } else {
+        icon.textContent = '🌙';
+        label.textContent = 'Dark';
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    }
+
+    const savedTheme = localStorage.getItem('phys_theme') || 'dark';
+    applyTheme(savedTheme);
+
+    // =========================================================================
+    // 2. ДАННЫЕ ЛОКАЛИЗАЦИИ И МОДУЛЕЙ
     // =========================================================================
     let currentLang = 'ru';
 
@@ -1209,62 +1247,62 @@
       ru: {
         nav_modules: "Модули",
         nav_sandbox: "Симуляции",
-        nav_archive: "Исследование & CV",
-        hero_title: "ЛАБОРАТОРИЯ ВИЗУАЛЬНОЙ И КВАНТОВОЙ ФИЗИКИ",
-        hero_desc: "Интерактивный исследовательский терминал, соединяющий строгий математический аппарат физики твердого тела и квантовой механики с наглядной 16-битной пиксельной графикой.",
-        filter_label: "ФИЛЬТР РАЗДЕЛОВ:",
-        filter_all: "ВСЕ [3]",
-        grid_title: "КАТАЛОГ ФЕНОМЕНОВ (3 УРОВНЯ ГЛУБИНЫ)",
-        sandbox_title: "ИНТЕРАКТИВНАЯ ПЕСОЧНИЦА (LIVE SANDBOX)",
-        ctrl_indium: "Доля индия x в сплаве InₓGa₁₋ₓN:",
-        ctrl_width: "Ширина барьера a (нм):",
-        ctrl_height: "Превышение барьера (V₀ - E):",
-        archive_title: "АКАДЕМИЧЕСКИЙ АРХИВ & ПОРТФОЛИО АВТОРА",
+        nav_archive: "Исследование",
+        hero_title: "Лаборатория визуальной и квантовой физики",
+        hero_desc: "Образовательная платформа и интерактивный справочник, соединяющий строгий математический аппарат физики твердого тела и квантовой механики с наглядным компьютерным моделированием.",
+        filter_label: "Разделы:",
+        filter_all: "Все модули (3)",
+        grid_title: "Каталог физических явлений",
+        sandbox_title: "Интерактивная лаборатория симуляций",
+        ctrl_indium: "Доля индия x в сплаве InₓGa₁₋ₓN",
+        ctrl_width: "Ширина барьера a (нм)",
+        ctrl_height: "Высота барьера (V₀ - E)",
+        archive_title: "Академический архив и об авторе",
         paper_title: "Физика гетероструктур InGaN/GaN и квантовый выход синих светодиодов",
-        paper_abstract: "Аннотация: В работе проводится сравнительный анализ зонной структуры непрямозонного кремния (Si) и прямозонного нитрида галлия (GaN). Математически моделируется локализация носителей заряда в квантовых ямах InGaN, объясняющая высокую излучательную рекомбинацию.",
-        cv_title: "Исследователь и разработчик симуляций",
-        cv_bio: "Специализация: Физика полупроводников, квантовая механика, численное моделирование и научная визуализация. Проект создан как доказательство глубокого понимания математического аппарата за физическими процессами.",
-        btn_open: "ОТКРЫТЬ 3 УРОВНЯ ГЛУБИНЫ >>"
+        paper_abstract: "Аннотация: В работе проводится сравнительный анализ зонной структуры непрямозонного кремния (Si) и прямозонного нитрида галлия (GaN). Математически моделируется локализация носителей заряда в квантовых ямах InGaN, объясняющая высокую эффективность излучательной рекомбинацию.",
+        cv_title: "Автор проекта и разработчик",
+        cv_bio: "Специализация: Физика полупроводников, квантовая механика, численное моделирование и создание интерактивных образовательных продуктов.",
+        btn_open: "Изучить модуль (3 уровня) →"
       },
       en: {
         nav_modules: "Modules",
-        nav_sandbox: "Sandbox",
-        nav_archive: "Research & CV",
-        hero_title: "VISUAL & QUANTUM PHYSICS LABORATORY",
-        hero_desc: "An interactive research terminal bridging rigorous solid-state and quantum mathematical formalism with 16-bit pixel art simulations.",
-        filter_label: "TOPIC FILTER:",
-        filter_all: "ALL [3]",
-        grid_title: "PHENOMENA GRID (3 DEPTH LEVELS)",
-        sandbox_title: "INTERACTIVE SIMULATION SANDBOX",
-        ctrl_indium: "Indium fraction x in InₓGa₁₋ₓN alloy:",
-        ctrl_width: "Barrier width a (nm):",
-        ctrl_height: "Barrier excess (V₀ - E):",
-        archive_title: "ACADEMIC ARCHIVE & CREATOR DOSSIER",
+        nav_sandbox: "Simulations",
+        nav_archive: "Research",
+        hero_title: "Visual & Quantum Physics Laboratory",
+        hero_desc: "An interactive educational platform combining rigorous solid-state and quantum mathematical formalism with intuitive real-time simulations.",
+        filter_label: "Topics:",
+        filter_all: "All Modules (3)",
+        grid_title: "Phenomena Catalog",
+        sandbox_title: "Interactive Simulation Sandbox",
+        ctrl_indium: "Indium fraction x in InₓGa₁₋ₓN alloy",
+        ctrl_width: "Barrier width a (nm)",
+        ctrl_height: "Barrier excess (V₀ - E)",
+        archive_title: "Academic Archive & Author Profile",
         paper_title: "Physics of InGaN/GaN Heterostructures and High-Efficiency Blue LEDs",
-        paper_abstract: "Abstract: This 20-page study compares the indirect band structure of Silicon (Si) with direct-bandgap Gallium Nitride (GaN), modeling carrier localization in InGaN quantum wells to explain high radiative efficiency.",
-        cv_title: "Physics Researcher & Simulation Developer",
-        cv_bio: "Focus: Solid-state physics, quantum mechanics, numerical modeling, and interactive scientific visualization designed for both students and admissions faculty.",
-        btn_open: "EXPLORE 3 DEPTH LEVELS >>"
+        paper_abstract: "Abstract: This 20-page study compares the indirect band structure of Silicon (Si) with direct-bandgap Gallium Nitride (GaN), modeling carrier localization in InGaN quantum wells.",
+        cv_title: "Project Creator & Simulation Developer",
+        cv_bio: "Focus: Semiconductor physics, quantum mechanics, numerical modeling, and interactive scientific visualization.",
+        btn_open: "Explore Module (3 Levels) →"
       },
       jp: {
         nav_modules: "モジュール",
         nav_sandbox: "シミュレーション",
-        nav_archive: "研究論文 & CV",
+        nav_archive: "研究論文",
         hero_title: "ビジュアル・量子物理学ラボラトリー",
-        hero_desc: "固体物理学および量子力学の厳密な数学的定式化と16ビットピクセルシミュレーションを融合させた研究ターミナル。",
-        filter_label: "分野フィルター:",
-        filter_all: "すべて [3]",
-        grid_title: "物理現象カタログ（3段階の深度）",
-        sandbox_title: "インタラクティブ・サンドボックス",
-        ctrl_indium: "InₓGa₁₋ₓN 混晶中のインジウム組成 x:",
-        ctrl_width: "障壁幅 a (nm):",
-        ctrl_height: "障壁高さ (V₀ - E):",
-        archive_title: "学術アーカイブ & 研究者プロフィール",
+        hero_desc: "固体物理学および量子力学の厳密な数学的定式化と直感的なリアルタイムシミュレーションを融合させた教育プラットフォーム。",
+        filter_label: "分野:",
+        filter_all: "すべて (3)",
+        grid_title: "物理現象カタログ",
+        sandbox_title: "インタラクティブ・シミュレーション",
+        ctrl_indium: "InₓGa₁₋ₓN 混晶中のインジウム組成 x",
+        ctrl_width: "障壁幅 a (nm)",
+        ctrl_height: "障壁高さ (V₀ - E)",
+        archive_title: "学術アーカイブ & 著者プロフィール",
         paper_title: "InGaN/GaNヘテロ構造の物理と高効率青色LEDの発光機構",
-        paper_abstract: "概要：本論文（全20頁）では間接遷移型シリコン(Si)と直接遷移型窒化ガリウム(GaN)のバンド構造を比較し、InGaN量子井戸におけるキャリア局在と発光再結合を数理モデル化する。",
-        cv_title: "物理リサーチャー & シミュレーション開発者",
-        cv_bio: "専門：半導体物理、量子力学、数値モデリング、科学可視化。各現象の背後にある数学的構造の深い理解を実証するポートフォリオ。",
-        btn_open: "3段階の解説を開く >>"
+        paper_abstract: "概要：間接遷移型シリコン(Si)と直接遷移型窒化ガリウム(GaN)のバンド構造を比較し、InGaN量子井戸におけるキャリア局在と発光再結合をモデル化します。",
+        cv_title: "プロジェクト開発者・リサーチャー",
+        cv_bio: "専門：半導体物理、量子力学、数値モデリング、インタラクティブ科学可視化。",
+        btn_open: "モジュールを開く (3段階) →"
       }
     };
 
@@ -1272,12 +1310,12 @@
       {
         id: "gan",
         category: "Solid State",
-        level: "LVL 3 // ADV",
+        level: "Advanced",
         formulaPreview: "$$\\lambda = \\frac{hc}{E_g} \\approx \\frac{1240\\text{ eV}\\cdot\\text{nm}}{E_g}$$",
         title: {
-          ru: "Модуль 1: Зонная теория и гетероструктуры GaN",
-          en: "Module 1: Band Theory & GaN Blue LEDs",
-          jp: "モジュール 1: バンド理論とGaN青色LED"
+          ru: "Зонная теория и гетероструктуры GaN",
+          en: "Band Theory & GaN Blue LEDs",
+          jp: "バンド理論とGaN青色LED"
         },
         desc: {
           ru: "Почему непрямозонный кремний (Si) не светится, а прямозонный нитрид галлия (GaN) совершил революцию в освещении.",
@@ -1286,8 +1324,8 @@
         },
         hook: {
           ru: "В прямозонном полупроводнике (GaN) минимум зоны проводимости находится ровно над максимумом валентной зоны в k-пространстве. Электрон рекомбинирует с дыркой напрямую, испуская фотон синего спектра без участия фонона решетки.",
-          en: "In a direct-bandgap semiconductor (GaN), the conduction band minimum aligns directly above the valence band maximum in k-space. Electrons recombine with holes directly, emitting a high-energy blue photon without requiring a lattice phonon.",
-          jp: "直接遷移型半導体(GaN)では、伝導帯の底と価電子帯の頂上が同じ波数ベクトルkに位置するため、電子と正孔がフォノンを介さず直接再結合して青色光子を放出します。"
+          en: "In a direct-bandgap semiconductor (GaN), the conduction band minimum aligns directly above the valence band maximum in k-space. Electrons recombine with holes directly, emitting a blue photon.",
+          jp: "直接遷移型半導体(GaN)では、伝導帯の底と価電子帯の頂上が同じ波数ベクトルkに位置するため、電子と正孔が直接再結合して青色光子を放出します。"
         },
         math: "$$E(\\mathbf{k}) = E_c + \\frac{\\hbar^2 k^2}{2m_e^*}, \\quad \\lambda = \\frac{hc}{E_g} \\approx \\frac{1240 \\text{ eV}\\cdot\\text{nm}}{E_g}$$",
         glossary: [
@@ -1298,53 +1336,53 @@
         quiz: {
           q: {
             ru: "Как изменится длина волны и цвет свечения диода, если добавить больше индия (x) в сплав InₓGa₁₋ₓN?",
-            en: "How does the emission wavelength and color shift when adding more Indium (x) into an InₓGa₁₋ₓN alloy?",
-            jp: "InₓGa₁₋ₓN混晶のインジウム組成(x)を増やすと、発光波長と色はどのように変化するか？"
+            en: "How does the emission wavelength shift when adding more Indium (x) into an InₓGa₁₋ₓN alloy?",
+            jp: "InₓGa₁₋ₓN混晶のインジウム組成(x)を増やすと、発光波長はどのように変化するか？"
           },
           options: {
             ru: [
-              "Ширина запрещенной зоны Eg уменьшится, длина волны увеличится (смещение от синего к зеленому/красному).",
-              "Ширина запрещенной зоны Eg увеличится, излучение уйдет в глубокий ультрафиолет.",
-              "Длина волны не изменится, так как она зависит только от температуры."
+              "Ширина запрещенной зоны Eg уменьшится, длина волны увеличится (смещение к зеленому и красному).",
+              "Ширина запрещенной зоны Eg увеличится, излучение уйдет в ультрафиолет.",
+              "Длина волны не изменится."
             ],
             en: [
-              "Bandgap Eg decreases, wavelength increases (red-shift from blue toward green/red).",
-              "Bandgap Eg increases, shifting emission into the deep ultraviolet.",
-              "Wavelength remains unchanged because it only depends on temperature."
+              "Bandgap Eg decreases, wavelength increases (shift toward green/red).",
+              "Bandgap Eg increases, shifting emission into ultraviolet.",
+              "Wavelength remains unchanged."
             ],
             jp: [
-              "バンドギャップEgが縮小し、波長が長波長側（青色から緑・赤色側）へシフトする。",
-              "バンドギャップEgが拡大し、深紫外領域へシフトする。",
-              "波長は温度にのみ依存するため変化しない。"
+              "バンドギャップEgが縮小し、波長が長波長側（緑・赤色側）へシフトする。",
+              "バンドギャップEgが拡大し、紫外領域へシフトする。",
+              "波長は変化しない。"
             ]
           },
           correctIndex: 0,
           explanation: {
             ru: "Верно! У чистого GaN Eg ≈ 3.4 эВ, а у InN Eg ≈ 0.7 эВ. Увеличение доли индия сужает запрещенную зону, что по формуле λ = hc/Eg увеличивает длину волны.",
-            en: "Correct! Pure GaN has Eg ≈ 3.4 eV while InN has Eg ≈ 0.7 eV. Increasing Indium content narrows the bandgap, increasing λ = hc/Eg toward green.",
-            jp: "正解！GaNのEg ≈ 3.4 eVに対しInNはEg ≈ 0.7 eVです。インジウムを増やすと禁制帯幅が狭まり、λ = hc/Eg に従って長波長化します。"
+            en: "Correct! Increasing Indium content narrows the bandgap Eg, increasing λ = hc/Eg toward longer wavelengths.",
+            jp: "正解！インジウムを増やすと禁制帯幅が狭まり、λ = hc/Eg に従って長波長化します。"
           }
         }
       },
       {
         id: "tunnel",
         category: "Quantum",
-        level: "LVL 2 // INT",
+        level: "Intermediate",
         formulaPreview: "$$T \\approx \\exp\\left(-\\frac{2a}{\\hbar}\\sqrt{2m(V_0-E)}\\right)$$",
         title: {
-          ru: "Модуль 2: Квантовое туннелирование через барьер",
-          en: "Module 2: Quantum Barrier Tunneling",
-          jp: "モジュール 2: 量子トンネル効果"
+          ru: "Квантовое туннелирование через барьер",
+          en: "Quantum Barrier Tunneling",
+          jp: "量子トンネル効果"
         },
         desc: {
-          ru: "Пиксельная визуализация волнового пакета, проходящего сквозь потенциальный барьер конечной ширины с экспоненциальным затуханием.",
-          en: "Pixel visualization of a wave packet penetrating a finite potential barrier with exponential amplitude decay inside the classic forbidden zone.",
-          jp: "有限幅のポテンシャル障壁を透過する波束と、障壁内部での指数関数的減衰のピクセル可視化。"
+          ru: "Прохождение волнового пакета сквозь потенциальный барьер конечной ширины с экспоненциальным затуханием амплитуды.",
+          en: "Wave packet penetration through a finite potential barrier with exponential amplitude decay inside the barrier.",
+          jp: "有限幅のポテンシャル障壁を透過する波束と、障壁内部での指数関数的減衰の可視化。"
         },
         hook: {
-          ru: "Классическая частица с энергией E < V₀ отражается от стены. Но квантовая волна де Бройля не обрывается резко на границе: внутри барьера её амплитуда затухает по экспоненте, и при малой толщине a волна выходит по ту сторону.",
-          en: "A classical particle with E < V₀ bounces off the wall. However, a quantum matter wave decays exponentially inside the barrier and emerges with non-zero amplitude on the far side if the barrier is thin.",
-          jp: "古典粒子は E < V₀ の障壁を越えられませんが、量子波動関数は障壁内部で指数関数的に減衰し、障壁が薄ければ反対側へ透過します。"
+          ru: "Классическая частица с энергией E < V₀ отражается от преграды. Однако квантовая волна де Бройля проникает внутрь барьера, затухая по экспоненте, и при малой толщине барьера выходит по ту сторону с ненулевой вероятностью.",
+          en: "A quantum matter wave decays exponentially inside a barrier where E < V₀ and emerges with non-zero amplitude on the far side if the barrier is thin.",
+          jp: "量子波動関数は障壁内部で指数関数的に減衰し、障壁が薄ければ反対側へ透過します。"
         },
         math: "$$-\\frac{\\hbar^2}{2m}\\frac{d^2\\psi}{dx^2} + V(x)\\psi = E\\psi, \\quad \\kappa = \\frac{\\sqrt{2m(V_0 - E)}}{\\hbar}$$",
         glossary: [
@@ -1362,46 +1400,46 @@
             ru: [
               "Уменьшится линейно в 2 раза.",
               "Упадет экспоненциально (пропорционально e⁻²ᵏᵃ).",
-              "Возрастет за счет резонансного усиления."
+              "Возрастет за счет интерференции."
             ],
             en: [
               "It decreases linearly by a factor of 2.",
               "It drops exponentially (proportional to e⁻²ᵏᵃ).",
-              "It increases due to resonant amplification."
+              "It increases due to interference."
             ],
             jp: [
-              "線形に半分（1/2）になる。",
+              "線形に半分になる。",
               "指数関数的に急激に減少する（e⁻²ᵏᵃ に比例）。",
-              "共鳴増幅により増加する。"
+              "干渉により増加する。"
             ]
           },
           correctIndex: 1,
           explanation: {
-            ru: "Точно! Поскольку ширина барьера a стоит в показателе отрицательной экспоненты T ~ exp(-2κa), даже небольшое утолщение барьера резко снижает туннельный ток.",
-            en: "Spot on! Because barrier width a sits in the negative exponent T ~ exp(-2κa), doubling a squares the small decay factor.",
-            jp: "正解！障壁幅 a は指数部 T ~ exp(-2κa) に含まれるため、わずかな厚みの増加でも透過確率は劇的に低下します。"
+            ru: "Точно! Ширина барьера a находится в показателе отрицательной экспоненты T ~ exp(-2κa), поэтому утолщение барьера резко снижает туннельный ток.",
+            en: "Correct! Barrier width a is in the negative exponent T ~ exp(-2κa).",
+            jp: "正解！障壁幅 a は指数部 T ~ exp(-2κa) に含まれるため、透過確率は急激に低下します。"
           }
         }
       },
       {
         id: "meissner",
         category: "Electromagnetism",
-        level: "LVL 3 // ADV",
+        level: "Advanced",
         formulaPreview: "$$\\nabla^2 \\mathbf{B} = \\frac{1}{\\lambda_L^2}\\mathbf{B}, \\quad \\mathbf{B}_{\\text{in}} = 0$$",
         title: {
-          ru: "Модуль 3: Эффект Мейснера и квантовая левитация",
-          en: "Module 3: Meissner Effect & Quantum Levitation",
-          jp: "モジュール 3: マイスナー効果と量子浮上"
+          ru: "Эффект Мейснера и квантовая левитация",
+          en: "Meissner Effect & Quantum Levitation",
+          jp: "マイスナー効果と量子浮上"
         },
         desc: {
-          ru: "Выталкивание магнитного поля из сверхпроводника при охлаждении ниже критической температуры Tc и пиннинг вихрей Абрикосова.",
+          ru: "Выталкивание магнитного поля из сверхпроводника и захват магнитного потока вихрями Абрикосова.",
           en: "Active expulsion of magnetic flux from a superconductor cooled below Tc and flux pinning via Abrikosov vortices.",
           jp: "臨界温度Tc以下での超伝導体からの磁束排除と、アブリコソフ渦糸のピン止めによる量子浮上。"
         },
         hook: {
-          ru: "В отличие от простого идеального проводника, сверхпроводник при переходе через Tc активно выталкивает внешнее магнитное поле наружу за счет поверхностных сверхтоков. А в сверхпроводниках II рода квантованные вихри Абрикосова жестко фиксируют левитирующий магнит в пространстве.",
-          en: "Unlike a mere perfect conductor, a superconductor cooled below Tc actively expels magnetic fields via surface screening currents. In Type-II superconductors, quantized Abrikosov flux tubes lock the levitating magnet in 3D space.",
-          jp: "完全導体とは異なり、超伝導体はTc以下で表面電流により内部磁場を完全に排除します。第II種超伝導体では量子化された磁束（アブリコソフ渦糸）がピン止めされ、安定した磁気浮上が生じます。"
+          ru: "При охлаждении ниже критической температуры Tc сверхпроводник выталкивает магнитное поле наружу. В сверхпроводниках II рода квантованные нити магнитного потока (вихри Абрикосова) закрепляются на дефектах решетки и жестко удерживают магнит на весу.",
+          en: "Cooled below Tc, a superconductor expels magnetic fields. In Type-II superconductors, quantized Abrikosov vortices lock the levitating magnet in 3D space.",
+          jp: "第II種超伝導体では量子化された磁束（アブリコソフ渦糸）がピン止めされ、安定した磁気浮上が生じます。"
         },
         math: "$$\\nabla \\times \\mathbf{J}_s = -\\frac{n_s e^2}{m}\\mathbf{B}, \\quad \\Phi_0 = \\frac{h}{2e} \\approx 2.07 \\times 10^{-15}\\text{ Wb}$$",
         glossary: [
@@ -1411,39 +1449,39 @@
         ],
         quiz: {
           q: {
-            ru: "Благодаря какому явлению сверхпроводник II рода не просто отталкивает магнит, но и удерживает его от соскальзывания вбок?",
-            en: "What phenomenon prevents a levitating magnet over a Type-II superconductor from sliding off sideways?",
-            jp: "第II種超伝導体上の磁石が横に滑り落ちず空中に固定される現象は何によるものか？"
+            ru: "Что удерживает левитирующий магнит над сверхпроводником II рода от соскальзывания вбок?",
+            en: "What prevents a levitating magnet over a Type-II superconductor from sliding sideways?",
+            jp: "第II種超伝導体上の磁石が横に滑り落ちず空中に固定される理由は何ですか？"
           },
           options: {
             ru: [
-              "Пиннинг (захват) квантованных магнитных вихрей Абрикосова на дефектах кристалла.",
-              "Электростатическое притяжение куперовских пар к поверхности магнита.",
-              "Аэродинамическая подушка кипящего жидкого азота."
+              "Пиннинг (захват) квантованных вихрей Абрикосова на дефектах кристаллической решетки.",
+              "Электростатическое притяжение к поверхности.",
+              "Поток испаряющегося азота."
             ],
             en: [
               "Flux pinning of quantized Abrikosov vortices at crystal lattice defects.",
-              "Electrostatic attraction between Cooper pairs and the magnet surface.",
-              "Aerodynamic cushioning from boiling liquid nitrogen."
+              "Electrostatic attraction to the surface.",
+              "Rising nitrogen gas."
             ],
             jp: [
-              "結晶欠陥によるアブリコソフ量子化磁束のピン止め効果（フラックス・ピニング）。",
-              "クーパー対と磁石表面の間の静電引力。",
-              "液体窒素の沸騰による気流クッション。"
+              "結晶欠陥によるアブリコソフ量子化磁束のピン止め効果。",
+              "静電引力。",
+              "窒素ガスの気流。"
             ]
           },
           correctIndex: 0,
           explanation: {
-            ru: "Верно! Магнитные силовые линии пронизывают сверхпроводник II рода в виде тонких нитей (квантов потока Φ₀), которые цепляются за примеси решетки и создают «квантовый захват».",
-            en: "Correct! Magnetic flux penetrates Type-II superconductors in quantized tubes (Φ₀) that get pinned at lattice defects, locking the magnet in place.",
-            jp: "正解！磁束量子Φ₀のチューブが結晶欠陥に捕捉（ピン止め）されることで、三次元的に安定した量子ロックが実現します。"
+            ru: "Верно! Квантованные трубки магнитного потока Φ₀ цепляются за неоднородности кристалла, создавая устойчивую трехмерную квантовую ловушку.",
+            en: "Correct! Quantized flux tubes (Φ₀) get pinned at lattice defects, locking the magnet in place.",
+            jp: "正解！磁束量子Φ₀のチューブが結晶欠陥にピン止めされることで三次元的に固定されます。"
           }
         }
       }
     ];
 
     // =========================================================================
-    // 2. РЕНДЕРИНГ КАРТОЧЕК И ПЕРЕКЛЮЧЕНИЕ ЯЗЫКОВ
+    // 3. РЕНДЕРИНГ КАРТОЧЕК И МОДАЛЬНОГО ОКНА
     // =========================================================================
     let currentFilter = 'all';
 
@@ -1458,7 +1496,7 @@
           card.className = 'module-card';
           card.innerHTML = `
             <div class="card-canvas-wrap">
-              <canvas id="canvas-${mod.id}" class="pixel-canvas" width="320" height="180"></canvas>
+              <canvas id="canvas-${mod.id}" class="sim-canvas" width="380" height="214"></canvas>
               <div class="card-badges">
                 <span class="tag-badge">${mod.category}</span>
                 <span class="lvl-badge">${mod.level}</span>
@@ -1506,9 +1544,6 @@
       renderCards();
     }
 
-    // =========================================================================
-    // 3. МОДАЛЬНОЕ ОКНО «3 УРОВНЯ ГЛУБИНЫ»
-    // =========================================================================
     function openModule(id) {
       const mod = modulesData.find(m => m.id === id);
       if (!mod) return;
@@ -1531,19 +1566,19 @@
       mod.quiz.options[currentLang].forEach((optText, idx) => {
         const btn = document.createElement('button');
         btn.className = 'quiz-option';
-        btn.textContent = `[${idx + 1}] ${optText}`;
+        btn.textContent = optText;
         btn.onclick = () => {
           optionsBox.querySelectorAll('.quiz-option').forEach(b => {
             b.classList.remove('correct', 'wrong');
           });
           if (idx === mod.quiz.correctIndex) {
             btn.classList.add('correct');
-            feedbackBox.style.borderLeftColor = 'var(--accent-green)';
+            feedbackBox.style.borderLeftColor = 'var(--success)';
             feedbackBox.textContent = mod.quiz.explanation[currentLang];
           } else {
             btn.classList.add('wrong');
-            feedbackBox.style.borderLeftColor = 'var(--accent-red)';
-            feedbackBox.textContent = "Попробуй еще раз: обрати внимание на формулу во втором блоке.";
+            feedbackBox.style.borderLeftColor = 'var(--danger)';
+            feedbackBox.textContent = "Попробуй еще раз: обрати внимание на математическую зависимость во втором блоке.";
           }
           feedbackBox.style.display = 'block';
         };
@@ -1571,7 +1606,7 @@
     });
 
     // =========================================================================
-    // 4. ИНТЕРАКТИВНАЯ ПЕСОЧНИЦА (LIVE SANDBOX)
+    // 4. ЛОГИКА ИНТЕРАКТИВНОЙ ПЕСОЧНИЦЫ
     // =========================================================================
     let sandboxState = {
       x: 0.20,
@@ -1588,12 +1623,12 @@
       document.getElementById('sandbox-tunnel').style.display = mode === 'tunnel' ? 'grid' : 'none';
     }
 
-    function wavelengthToHex(nm) {
-      if (nm < 400) return '#9F7AEA'; // UV Violet
-      if (nm < 490) return '#00F0FF'; // Blue/Cyan
-      if (nm < 560) return '#3FB950'; // Green
-      if (nm < 600) return '#ECC94B'; // Yellow
-      return '#F56565';               // Red/IR
+    function wavelengthToColor(nm) {
+      if (nm < 400) return '#8B5CF6';
+      if (nm < 490) return '#0EA5E9';
+      if (nm < 560) return '#10B981';
+      if (nm < 600) return '#F59E0B';
+      return '#EF4444';
     }
 
     function updateLedSandbox() {
@@ -1626,172 +1661,273 @@
     }
 
     // =========================================================================
-    // 5. 16-БИТНЫЙ ПИКСЕЛЬНЫЙ ДВИЖОК АНИМАЦИЙ (HTML5 CANVAS)
+    // 5. ПЛАВНЫЕ ВЕКТОРНЫЕ АНИМАЦИИ НА CANVAS (С ПОДДЕРЖКОЙ ТЕМНОЙ И СВЕТЛОЙ ТЕМЫ)
     // =========================================================================
-    let tick = 0;
+    let time = 0;
 
-    function animatePixelLab() {
-      tick += 0.06;
+    function getThemePalette() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      return {
+        bg: isDark ? '#090D16' : '#F8FAFC',
+        grid: isDark ? 'rgba(148, 163, 184, 0.08)' : 'rgba(15, 23, 42, 0.06)',
+        text: isDark ? '#94A3B8' : '#475569',
+        primary: isDark ? '#38BDF8' : '#2563EB',
+        secondary: isDark ? '#818CF8' : '#4F46E5',
+        accentRed: '#EF4444',
+        surface: isDark ? '#1E293B' : '#E2E8F0'
+      };
+    }
 
-      // Карточка 1: p-n переход и излучательная рекомбинация в GaN
+    function drawSubtleGrid(ctx, w, h, color) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      const step = 28;
+      ctx.beginPath();
+      for (let x = 0; x < w; x += step) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+      }
+      for (let y = 0; y < h; y += step) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+      }
+      ctx.stroke();
+    }
+
+    function animateSimulations() {
+      time += 0.045;
+      const pal = getThemePalette();
+
+      // 1. Карточка GaN: гладкие параболы зон Ec и Ev и рекомбинация
       const cGan = document.getElementById('canvas-gan');
       if (cGan) {
         const ctx = cGan.getContext('2d');
-        ctx.fillStyle = '#080B10';
-        ctx.fillRect(0, 0, 320, 180);
+        ctx.fillStyle = pal.bg;
+        ctx.fillRect(0, 0, 380, 214);
+        drawSubtleGrid(ctx, 380, 214, pal.grid);
 
-        ctx.strokeStyle = '#2B6CB0';
+        // Зоны проводимости и валентной зоны
+        ctx.strokeStyle = pal.secondary;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(40, 52);
+        ctx.lineTo(340, 52);
+        ctx.moveTo(40, 162);
+        ctx.lineTo(340, 162);
+        ctx.stroke();
+
+        const cycle = (time * 32) % 140;
+        const ex = Math.min(60 + cycle, 190);
+        const hx = Math.max(320 - cycle, 190);
+
+        // Электрон
+        ctx.fillStyle = pal.primary;
+        ctx.beginPath();
+        ctx.arc(ex, 52, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Дырка
+        ctx.strokeStyle = pal.accentRed;
         ctx.lineWidth = 2;
-        ctx.strokeRect(20, 40, 280, 2);
-        ctx.strokeRect(20, 135, 280, 2);
+        ctx.beginPath();
+        ctx.arc(hx, 162, 6, 0, Math.PI * 2);
+        ctx.stroke();
 
-        const cycle = (tick * 25) % 120;
-        const ex = 40 + cycle;
-        const hx = 280 - cycle;
+        // Излучение гладкой волны фотона при встрече
+        if (cycle > 95) {
+          ctx.strokeStyle = pal.primary;
+          ctx.lineWidth = 2;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(190, 60);
+          ctx.lineTo(190, 154);
+          ctx.stroke();
+          ctx.setLineDash([]);
 
-        ctx.fillStyle = '#00F0FF';
-        ctx.fillRect(Math.min(ex, 156), 34, 8, 8);
-
-        ctx.strokeStyle = '#F85149';
-        ctx.strokeRect(Math.max(hx, 156), 131, 8, 8);
-
-        if (cycle > 85) {
-          ctx.fillStyle = '#00F0FF';
-          ctx.fillRect(159, 42, 3, 90);
-          const waveX = 160 + (cycle - 85) * 3;
-          ctx.fillStyle = '#4299E1';
-          for (let i = 0; i < 6; i++) {
-            ctx.fillRect(waveX + i * 6, 85 + Math.sin(tick * 4 + i) * 6, 4, 4);
+          ctx.beginPath();
+          const startX = 198 + (cycle - 95) * 2.2;
+          for (let i = 0; i < 45; i++) {
+            const wx = startX + i;
+            const wy = 107 + Math.sin(i * 0.35 - time * 6) * 8;
+            if (i === 0) ctx.moveTo(wx, wy);
+            else ctx.lineTo(wx, wy);
           }
+          ctx.stroke();
         }
       }
 
-      // Карточка 2: Квантовое туннелирование
+      // 2. Карточка Квантовое туннелирование: гладкая волновая функция
       const cTun = document.getElementById('canvas-tunnel');
       if (cTun) {
         const ctx = cTun.getContext('2d');
-        ctx.fillStyle = '#080B10';
-        ctx.fillRect(0, 0, 320, 180);
+        ctx.fillStyle = pal.bg;
+        ctx.fillRect(0, 0, 380, 214);
+        drawSubtleGrid(ctx, 380, 214, pal.grid);
 
-        ctx.fillStyle = 'rgba(43, 108, 176, 0.35)';
-        ctx.fillRect(135, 25, 50, 130);
-        ctx.strokeStyle = '#00F0FF';
-        ctx.strokeRect(135, 25, 50, 130);
+        // Барьер
+        ctx.fillStyle = pal.surface;
+        ctx.fillRect(160, 30, 60, 154);
+        ctx.strokeStyle = pal.secondary;
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(160, 30, 60, 154);
 
-        ctx.fillStyle = '#00F0FF';
-        for (let x = 15; x < 305; x += 4) {
-          let y = 90;
-          if (x < 135) {
-            y += Math.sin(x * 0.12 - tick * 3) * 32;
-          } else if (x <= 185) {
-            const decay = Math.exp(-(x - 135) * 0.045);
-            y += Math.sin(135 * 0.12 - tick * 3) * 32 * decay;
+        // Непрерывная кривая волновой функции
+        ctx.strokeStyle = pal.primary;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let x = 20; x < 360; x += 2) {
+          let y = 107;
+          if (x < 160) {
+            y += Math.sin(x * 0.11 - time * 3) * 36;
+          } else if (x <= 220) {
+            const decay = Math.exp(-(x - 160) * 0.038);
+            y += Math.sin(160 * 0.11 - time * 3) * 36 * decay;
           } else {
-            y += Math.sin(x * 0.12 - tick * 3) * 9;
+            y += Math.sin(x * 0.11 - time * 3) * 10;
           }
-          ctx.fillRect(x, y, 3, 3);
+          if (x === 20) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
         }
+        ctx.stroke();
       }
 
-      // Карточка 3: Эффект Мейснера
+      // 3. Карточка Эффект Мейснера: плавное обтекание магнитных линий
       const cMeis = document.getElementById('canvas-meissner');
       if (cMeis) {
         const ctx = cMeis.getContext('2d');
-        ctx.fillStyle = '#080B10';
-        ctx.fillRect(0, 0, 320, 180);
+        ctx.fillStyle = pal.bg;
+        ctx.fillRect(0, 0, 380, 214);
+        drawSubtleGrid(ctx, 380, 214, pal.grid);
 
-        ctx.fillStyle = '#1F2631';
-        ctx.fillRect(85, 130, 150, 24);
-        ctx.strokeStyle = '#00F0FF';
-        ctx.strokeRect(85, 130, 150, 24);
+        // Диск сверхпроводника
+        ctx.fillStyle = pal.surface;
+        ctx.beginPath();
+        ctx.roundRect(105, 148, 170, 26, 8);
+        ctx.fill();
+        ctx.strokeStyle = pal.primary;
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
 
-        const hoverY = 52 + Math.round(Math.sin(tick * 1.5) * 6);
-        ctx.fillStyle = '#F85149';
-        ctx.fillRect(135, hoverY, 25, 22);
-        ctx.fillStyle = '#4299E1';
-        ctx.fillRect(160, hoverY, 25, 22);
+        // Плавный левитирующий магнит
+        const hoverY = 62 + Math.sin(time * 1.6) * 6;
+        ctx.fillStyle = pal.accentRed;
+        ctx.beginPath();
+        ctx.roundRect(155, hoverY, 35, 24, [6, 0, 0, 6]);
+        ctx.fill();
 
-        ctx.fillStyle = '#00F0FF';
-        for (let t = 0; t < 20; t++) {
-          const px = 95 + t * 6.5;
-          const py = 122 - Math.sin((t / 20) * Math.PI) * 18;
-          ctx.fillRect(px, py, 3, 3);
-        }
+        ctx.fillStyle = pal.primary;
+        ctx.beginPath();
+        ctx.roundRect(190, hoverY, 35, 24, [0, 6, 6, 0]);
+        ctx.fill();
+
+        // Гладкие линии поля
+        ctx.strokeStyle = pal.secondary;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(115, 138);
+        ctx.quadraticCurveTo(190, 112, 265, 138);
+        ctx.stroke();
       }
 
       // Песочница 1: Зонная диаграмма InGaN
       const sLed = document.getElementById('canvas-sandbox-led');
       if (sLed) {
         const ctx = sLed.getContext('2d');
-        ctx.fillStyle = '#070A0F';
-        ctx.fillRect(0, 0, 480, 270);
+        ctx.fillStyle = pal.bg;
+        ctx.fillRect(0, 0, 560, 315);
+        drawSubtleGrid(ctx, 560, 315, pal.grid);
 
-        const gapPx = sandboxState.eg * 42;
-        const ecY = 135 - gapPx / 2;
-        const evY = 135 + gapPx / 2;
-        const color = wavelengthToHex(sandboxState.lambda);
+        const gapPx = sandboxState.eg * 48;
+        const ecY = 157 - gapPx / 2;
+        const evY = 157 + gapPx / 2;
+        const photonColor = wavelengthToColor(sandboxState.lambda);
 
-        ctx.fillStyle = '#2B6CB0';
-        ctx.fillRect(40, ecY - 6, 210, 6);
-        ctx.fillRect(40, evY, 210, 6);
+        // Уровни Ec и Ev
+        ctx.strokeStyle = pal.secondary;
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(50, ecY);
+        ctx.lineTo(270, ecY);
+        ctx.moveTo(50, evY);
+        ctx.lineTo(270, evY);
+        ctx.stroke();
 
-        ctx.fillStyle = color;
-        ctx.fillRect(143, ecY, 4, gapPx);
-        for (let i = 0; i < 8; i++) {
-          const wx = 175 + i * 24 + ((tick * 15) % 24);
-          const wy = 135 + Math.sin(tick * 3 + i) * 10;
-          ctx.fillRect(wx, wy, 6, 6);
+        // Переход и излучение гладкой синусоиды фотона
+        ctx.strokeStyle = photonColor;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(160, ecY + 6);
+        ctx.lineTo(160, evY - 6);
+        ctx.stroke();
+
+        ctx.beginPath();
+        for (let x = 0; x < 240; x += 2) {
+          const px = 190 + x;
+          const py = 157 + Math.sin(x * 0.14 - time * 5) * 14;
+          if (x === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
         }
+        ctx.stroke();
 
-        ctx.fillStyle = '#E6EDF3';
-        ctx.font = '12px "JetBrains Mono"';
-        ctx.fillText(`Ec (Conduction Band)`, 40, Math.max(20, ecY - 14));
-        ctx.fillText(`Ev (Valence Band)`, 40, Math.min(258, evY + 22));
-        ctx.fillStyle = color;
-        ctx.fillText(`PHOTON: ${sandboxState.lambda} nm`, 285, 105);
+        // Подписи
+        ctx.fillStyle = pal.text;
+        ctx.font = '500 13px "Inter", sans-serif';
+        ctx.fillText('Ec (Зона проводимости)', 50, Math.max(24, ecY - 12));
+        ctx.fillText('Ev (Валентная зона)', 50, Math.min(295, evY + 24));
+
+        ctx.fillStyle = photonColor;
+        ctx.font = '600 14px "JetBrains Mono", monospace';
+        ctx.fillText(`λ = ${sandboxState.lambda} nm (${sandboxState.eg.toFixed(2)} eV)`, 310, 125);
       }
 
-      // Песочница 2: Туннелирование
+      // Песочница 2: Квантовое туннелирование
       const sTun = document.getElementById('canvas-sandbox-tunnel');
       if (sTun) {
         const ctx = sTun.getContext('2d');
-        ctx.fillStyle = '#070A0F';
-        ctx.fillRect(0, 0, 480, 270);
+        ctx.fillStyle = pal.bg;
+        ctx.fillRect(0, 0, 560, 315);
+        drawSubtleGrid(ctx, 560, 315, pal.grid);
 
-        const barW = sandboxState.width * 55;
-        const barH = sandboxState.v0 * 45;
-        const barX = 185;
-        const barY = 215 - barH;
+        const barW = sandboxState.width * 65;
+        const barH = sandboxState.v0 * 52;
+        const barX = 210;
+        const barY = 250 - barH;
 
-        ctx.fillStyle = 'rgba(0, 240, 255, 0.16)';
+        ctx.fillStyle = pal.surface;
         ctx.fillRect(barX, barY, barW, barH);
-        ctx.strokeStyle = '#00F0FF';
+        ctx.strokeStyle = pal.secondary;
+        ctx.lineWidth = 2;
         ctx.strokeRect(barX, barY, barW, barH);
 
-        ctx.fillStyle = '#00F0FF';
-        for (let x = 20; x < 460; x += 4) {
-          let y = 135;
+        ctx.strokeStyle = pal.primary;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let x = 25; x < 535; x += 2) {
+          let y = 160;
           if (x < barX) {
-            y += Math.sin(x * 0.1 - tick * 3) * 45;
+            y += Math.sin(x * 0.09 - time * 3.2) * 50;
           } else if (x <= barX + barW) {
-            const dec = Math.exp(-(x - barX) * 0.018 * sandboxState.v0);
-            y += Math.sin(barX * 0.1 - tick * 3) * 45 * dec;
+            const dec = Math.exp(-(x - barX) * 0.016 * sandboxState.v0);
+            y += Math.sin(barX * 0.09 - time * 3.2) * 50 * dec;
           } else {
-            const amp = 45 * Math.exp(-barW * 0.018 * sandboxState.v0);
-            y += Math.sin(x * 0.1 - tick * 3) * Math.max(amp, 2);
+            const amp = 50 * Math.exp(-barW * 0.016 * sandboxState.v0);
+            y += Math.sin(x * 0.09 - time * 3.2) * Math.max(amp, 2.5);
           }
-          ctx.fillRect(x, y, 3, 3);
+          if (x === 25) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
         }
+        ctx.stroke();
       }
 
-      requestAnimationFrame(animatePixelLab);
+      requestAnimationFrame(animateSimulations);
     }
 
     window.addEventListener('DOMContentLoaded', () => {
       renderCards();
       updateLedSandbox();
       updateTunnelSandbox();
-      animatePixelLab();
+      animateSimulations();
 
       if (window.renderMathInElement) {
         renderMathInElement(document.body, {
